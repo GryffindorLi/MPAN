@@ -1,0 +1,6 @@
+2019-11-13 11:14:40,270 - pointnet2 - INFO - ---------------------------------------------------TRANING---------------------------------------------------
+2019-11-13 11:14:40,270 - pointnet2 - INFO - PARAMETER ...
+2019-11-13 11:14:40,271 - pointnet2 - INFO - Namespace(batchsize=4, decay_rate=0.0001, epoch=201, gpu='0', jitter=False, learning_rate=0.001, model_name='pointnet2', multi_gpu='0,1', optimizer='Adam', pretrain='../Pointnet_Pointnet2_pytorch/experiment/pointnet2PartSeg-2019-09-20_14-21/checkpoints/pointnet2_164_0.9426.pth', step_size=20, workers=4)
+2019-11-13 11:14:40,380 - pointnet2 - INFO - The number of training data is:13998
+2019-11-13 11:14:40,381 - pointnet2 - INFO - The number of test data is:1732
+2019-11-13 11:14:42,725 - pointnet2 - INFO - load model ../Pointnet_Pointnet2_pytorch/experiment/pointnet2PartSeg-2019-09-20_14-21/checkpoints/pointnet2_164_0.9426.pth

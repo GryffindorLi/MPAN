@@ -1,0 +1,9 @@
+2019-11-13 11:20:51,765 - pointnet2 - INFO - ---------------------------------------------------TRANING---------------------------------------------------
+2019-11-13 11:20:51,766 - pointnet2 - INFO - PARAMETER ...
+2019-11-13 11:20:51,766 - pointnet2 - INFO - Namespace(batchsize=4, decay_rate=0.0001, epoch=201, gpu='0', jitter=False, learning_rate=0.001, model_name='pointnet2', multi_gpu='0,1', optimizer='Adam', pretrain='../Pointnet_Pointnet2_pytorch/experiment/pointnet2PartSeg-2019-09-20_14-21/checkpoints/pointnet2_164_0.9426.pth', step_size=20, workers=4)
+2019-11-13 11:20:51,841 - pointnet2 - INFO - The number of training data is:13998
+2019-11-13 11:20:51,842 - pointnet2 - INFO - The number of test data is:1732
+2019-11-13 11:20:53,930 - pointnet2 - INFO - load model ../Pointnet_Pointnet2_pytorch/experiment/pointnet2PartSeg-2019-09-20_14-21/checkpoints/pointnet2_164_0.9426.pth
+2019-11-13 11:22:16,001 - pointnet2 - INFO - Best accuracy is: 0.00000
+2019-11-13 11:22:16,001 - pointnet2 - INFO - Best class avg mIOU is: 0.87632
+2019-11-13 11:22:16,002 - pointnet2 - INFO - Best inctance avg mIOU is: 0.85949
