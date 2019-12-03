@@ -3,7 +3,7 @@ import os
 import torch
 import torch.nn.parallel
 import torch.utils.data
-from utils_x import to_categorical
+from utils_x_lzr import to_categorical
 from collections import defaultdict
 from torch.autograd import Variable
 from data_utils.ShapeNetDataLoader import PartNormalDataset
@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import datetime
 import logging
 from pathlib import Path
-from utils import test_partseg
+from utils_x_lzr import test_partseg
 from tqdm import tqdm
 from model.pointnet2 import PointNet2PartSeg_msg_one_hot
 from model.pointnet import PointNetDenseCls, PointNetLoss
@@ -33,7 +33,7 @@ def parse_args():
     parser.add_argument('--workers', type=int, default=4, help='number of data loading workers')
     parser.add_argument('--epoch', type=int, default=201, help='number of epochs for training')
     parser.add_argument('--pretrain', type=str,
-                        default='../Pointnet_Pointnet2_pytorch/experiment/pointnet2PartSeg-2019-09-20_14-21/checkpoints/pointnet2_164_0.9426.pth',
+                        default='pointnet2_164_0.9426.pth',
                         help='whether use pretrain model')
     parser.add_argument('--gpu', type=str, default='0', help='specify gpu device')
     parser.add_argument('--model_name', type=str, default='pointnet2', help='Name of model')
@@ -163,7 +163,7 @@ def main(args):
         #             optimizer.step()
         #
         forpointnet2 = args.model_name == 'pointnet2'
-        test_metrics, test_hist_acc, cat_mean_iou, part_pred = test_partseg(model.eval(), testdataloader,
+        test_metrics, test_hist_acc, cat_mean_iou, part_pred = test_partseg(model.eval(),testdataloader,
                                                                             seg_label_to_cat, 50, forpointnet2)
         #  part_pred = np.array(part_pred).astype(np.int32)
         print('part_pred:', part_pred.shape)

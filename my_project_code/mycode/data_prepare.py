@@ -122,11 +122,11 @@ class parts_loader(Dataset):
         batches_sort = [str(j) for j in batches_int]
         self.batches = batches_sort
 
-        self.points = [os.path.join(i, 'p.npy') for i in self.batches]
-        self.norms = [os.path.join(i, 'n.npy') for i in self.batches]
-        self.labels = [os.path.join(i, 'l.npy') for i in self.batches]
-        self.parts = [os.path.join(i, 't.npy') for i in self.batches]
-        self.results = [os.path.join(i, 's_pred') for i in self.batches]
+        self.points = [os.path.join(root, i, 'p.npy') for i in self.batches]
+        self.norms = [os.path.join(root, i, 'n.npy') for i in self.batches]
+        self.labels = [os.path.join(root, i, 'l.npy') for i in self.batches]
+        self.parts = [os.path.join(root, i, 't.npy') for i in self.batches]
+        self.results = [os.path.join(root, i, 's_pred.npy') for i in self.batches]
 
     def __len__(self):
         return len(self.batches)
@@ -134,10 +134,10 @@ class parts_loader(Dataset):
     def __getitem__(self, item):
         batch = self.batches[item]
         points = np.load(self.points[item])
-        parts = np.load(self.parts[item])
+        pred_parts = np.load(self.results[item]).argmax(2)
         labels = np.load(self.labels[item])
 
-        return points, parts, labels
+        return points, pred_parts, labels
 
 class FC_input_loader(Dataset):
     def __init__(self, root):   # root is the place that saves the feature vector

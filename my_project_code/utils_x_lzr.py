@@ -118,7 +118,7 @@ def test_partseg(model, loader, catdict, num_classes = 50,forpointnet2=False):
         if forpointnet2:
             seg_pred = model(points_t, norm_plt_t, to_categorical(label, 16))
         else:
-            labels_pred, seg_pred, _  = model(points,to_categorical(label,16))
+            labels_pred, seg_pred, _ = model(points,to_categorical(label, 16))
             # labels_pred_choice = labels_pred.data.max(1)[1]
             # labels_correct = labels_pred_choice.eq(label.long().data).cpu().sum()
             # mean_correct.append(labels_correct.item() / float(points.size()[0]))
@@ -126,48 +126,18 @@ def test_partseg(model, loader, catdict, num_classes = 50,forpointnet2=False):
 
         p, l, t, n = points.cpu().data.numpy(), label.cpu().data.numpy(), target.cpu().data.numpy(), norm_plt.cpu().data.numpy()
         s_pred = seg_pred.cpu().detach().numpy()
-       # s_predict = s_pred.flatten()   # turn n_points*4 matrix into a vector.
-       # point_infos = np.concatenate((p, n, l, t), axis = 1)
-        os.makedirs('/home/dh/zdd/Lzr/experiment_data/'+time+'/'+str(batch_id))
-        np.save('/home/dh/zdd/Lzr/experiment_data/'+time+'/'+str(batch_id)+'/s_pred.npy',s_pred)
 
-       # os.makedirs('/home/dh/zdd/Lzr/experiment_data/p_'+time+str(batch_id))
-        np.save('/home/dh/zdd/Lzr/experiment_data/'+time+'/'+str(batch_id)+'/p.npy',p)
-#        f=open('/home/dh/zdd/Lzr/experiment/p_'+time+'/'+str(batch_id)+'.txt','w')
-#        np.savetxt('/home/dh/zdd/Lzr/experiment/p_'+time+'/'+str(batch_id)+'.txt', p, fmt="%d", delimiter=" ")
-#        f.close()
+        os.makedirs('/home/dh/zdd/Lzr/test_data/'+time+'/'+str(batch_id))
 
-       # os.makedirs('/home/dh/zdd/Lzr/experiment_data/n_'+time+str(batch_id))
-        np.save('/home/dh/zdd/Lzr/experiment_data/'+time+'/'+str(batch_id)+'/n.npy',n)
-#        g=open('/home/dh/zdd/Lzr/experiemnt/norm_'+time+'/'+str(batch_id)+'.txt','w')
-#        np.savetxt('/home/dh/zdd/Lzr/experiment/norm_'+time+'/'+str(batch_id)+'.txt', n, fmt="%d", delimiter=" ")
-#        g.close()
+        np.save('/home/dh/zdd/Lzr/test_data/'+time+'/'+str(batch_id)+'/s_pred.npy', s_pred)
 
-       # os.makedirs('/home/dh/zdd/Lzr/experiment_data/t_'+time+str(batch_id))
-        np.save('/home/dh/zdd/Lzr/experiment_data/'+time+'/'+str(batch_id)+'/t.npy',t)
-#        h=open('/home/dh/zdd/Lzr/experiemnt/t_'+time+'/'+str(batch_id)+'.txt','w')
-#        np.savetxt('/home/dh/zdd/Lzr/experiment/t_'+time+'/'+str(batch_id)+'.txt', t, fmt="%d", delimiter=" ")
-#        h.close()
+        np.save('/home/dh/zdd/Lzr/test_data/'+time+'/'+str(batch_id)+'/p.npy', p)
 
-       # os.makedirs('/home/dh/zdd/Lzr/experiment_data/l_'+time+str(batch_id))
-        np.save('/home/dh/zdd/Lzr/experiment_data/'+time+'/'+str(batch_id)+'/l.npy',l)
-#        j=open('/home/dh/zdd/Lzr/experiemnt/l_'+time+'/'+str(batch_id)+'.txt','w')
-#        np.savetxt('/home/dh/zdd/Lzr/experiment/l_'+time+'/'+str(batch_id)+'.txt', l, fmt="%d", delimiter=" ")
-#        j.close()
+        np.save('/home/dh/zdd/Lzr/test_data/'+time+'/'+str(batch_id)+'/n.npy', n)
 
-       # np.savetxt('/home/dh/zdd/Lzr/experiment/input_'+time+'/'+str(batch_id)+'.txt', point_infos, fmt="%d", delimiter=" ")
-       # with open('/home/dh/zdd/Lzr/experiemnt/result_'+time+'/'+str(batch_id)+'.txt','w') as f:
-       #     np.savetxt('/home/dh/zdd/Lzr/experiemnt/result_'+time+'/'+str(batch_id)+'.txt', s_pred, fmt="%d", delimiter=" ")
-       # with open('/home/dh/zdd/Lzr/experiemnt/p_'+time+'/'+str(batch_id)+'.txt','w') as f:     
-       # np.savetxt('/home/dh/zdd/Lzr/experiment/p_'+time+'/'+str(batch_id)+'.txt', p, fmt="%d", delimiter=" ")
-       # with open('/home/dh/zdd/Lzr/experiemnt/norm_'+time+'/'+str(batch_id)+'.txt','w') as f:     
-       # np.savetxt('/home/dh/zdd/Lzr/experiment/norm_'+time+'/'+str(batch_id)+'.txt', p, fmt="%d", delimiter=" ")
-       # with open('/home/dh/zdd/Lzr/experiemnt/t_'+time+'/'+str(batch_id)+'.txt','w') as f:     
-       # np.savetxt('/home/dh/zdd/Lzr/experiment/t_'+time+'/'+str(batch_id)+'.txt', t, fmt="%d", delimiter=" ")
-       # with open('/home/dh/zdd/Lzr/experiemnt/l_'+time+'/'+str(batch_id)+'.txt','w') as f:     
-       # np.savetxt('/home/dh/zdd/Lzr/experiment/l_'+time+'/'+str(batch_id)+'.txt', l, fmt="%d", delimiter=" ") 
-#        with open('../result_'+time+'/'+str(batch_id)+'/'+'.txt' , 'w') as f:   # save pred.
- #           f.write(str(np.array(seg_pred).argmax()) + '/n')
+        np.save('/home/dh/zdd/Lzr/test_data/'+time+'/'+str(batch_id)+'/t.npy', t)
+
+        np.save('/home/dh/zdd/Lzr/test_data/'+time+'/'+str(batch_id)+'/l.npy', l)
 
         iou_tabel, iou = compute_cat_iou(seg_pred,target,iou_tabel)
         iou_list+=iou
@@ -177,22 +147,22 @@ def test_partseg(model, loader, catdict, num_classes = 50,forpointnet2=False):
         pred_choice = seg_pred.data.max(1)[1]
         
         temp = pred_choice.view(-1,2048).cpu().data.numpy()
-        temps = np.concatenate((temps,temp), axis=0)
+        temps = np.concatenate((temps, temp), axis=0)
         # print('temp:',temps, temps.shape)
 
         correct = pred_choice.eq(target.data).cpu().sum()
-        metrics['accuracy'].append(correct.item()/ (batchsize * num_point))
+        metrics['accuracy'].append(correct.item() / (batchsize * num_point))
     iou_tabel[:,2] = iou_tabel[:,0] /iou_tabel[:,1]
     hist_acc += metrics['accuracy']
     metrics['accuracy'] = np.mean(hist_acc)
     metrics['inctance_avg_iou'] = np.mean(iou_list)
     # metrics['label_accuracy'] = np.mean(mean_correct)
-    iou_tabel = pd.DataFrame(iou_tabel,columns=['iou','count','mean_iou'])
-    iou_tabel['Category_IOU'] = [catdict[i] for i in range(len(catdict)) ]
+    iou_tabel = pd.DataFrame(iou_tabel, columns=['iou', 'count', 'mean_iou'])
+    iou_tabel['Category_IOU'] = [catdict[i] for i in range(len(catdict))]
     cat_iou = iou_tabel.groupby('Category_IOU')['mean_iou'].mean()
     metrics['class_avg_iou'] = np.mean(cat_iou)
 
-    return metrics, hist_acc, cat_iou, temps[1:,:]
+    return metrics, hist_acc, cat_iou, temps[1:, :]
 
 def test_semseg(model, loader, catdict, num_classes = 13, pointnet2=False):
     iou_tabel = np.zeros((len(catdict),3))
