@@ -47,13 +47,12 @@ def parse_args():
 
     return parser.parse_args()
 
-
 args = parse_args()
-experiment_dir = Path('./experiment/')
+experiment_dir = Path('./stage3_experiment/')
 experiment_dir.mkdir(exist_ok=True)
-checkpoints_dir = Path('./experiment/checkpoints/')
+checkpoints_dir = Path('./stage3_experiment/checkpoints/')
 checkpoints_dir.mkdir(exist_ok=True)
-log_dir = Path('./experiment/logs/')
+log_dir = Path('./stage3_experiment/logs/')
 log_dir.mkdir(exist_ok=True)
 
 norm = True
@@ -72,69 +71,62 @@ if args.multi_gpu is not None:
     device_ids = [int(x) for x in args.multi_gpu.split(',')]
     torch.backends.cudnn.benchmark = True
     model1.cuda(device_ids[0])
-    model2.cuda(device_ids[1])
     model1 = torch.nn.DataParallel(model1, device_ids=device_ids)
-    model2 = torch.nn.DataParallel(model2, device_ids=device_ids)
 else:
     model1.cuda()
-    model2.cuda()
 model1.load_state_dict(torch.load(args.pretrain), strict=False)
 
 features = []
 time = str(datetime.datetime.now())
-for batchid, (points,pred_parts, labels) in enumerate(trainloader):
-#    batchsize, num_point, _ = points.size()
-    for i in range(4):
-        part_point = []
-        points = points[i, :, :]
-        parts = pred_parts[i, :]
-        labels = labels[i]
-        seg_parts = set(parts)
-        for diff_part in seg_parts:
-            for j in parts:
-                if j.numpy() == diff_part.numpy():
-                    part_point.append(points[j, :, :])
-            part_point = np.array(part_point)
-            part_point = torch.Tensor(part_point)
-            part_point = part_point.transpose(2, 1)
-            part_point, labels = Variable(part_point).cuda(), Variable(labels).cuda()
-            model1 = model1.eval()
-            feature = model1(part_point)
-            features.append(feature.cpu().detach.numpy())
-        output = element_wise_max(features)
-        os.makedirs('/home/dh/zdd/Lzr/stage2_data/'+time+'/'+str(batchid))
-        np.save('/home/dh/zdd/Lzr/stage2_data/'+time+'/'+str(batchid)+'/'+str(labels.cpu().data.numpy())+'.npy', output)
+for batchid, (points, norms, labels) in enumerate(trainloader):
+    #    batchsize, num_point, _ = points.size()
+    label = labels[0]
+    for (part, norm) in zip(points, norms):
+        part, norm = np.array(part), np.array(norm)
+        part, norm = torch.Tensor(part), torch.Tensor(norm)
+        part.transpose(2, 1)
+        norm.transpose(2, 1)
+        part, norm, label = Variable(part).cuda(), Variable(norm).cuda(), Variable(
+            label.long()).cuda()
+        model1 = model1.eval()
+        feature = model1(part, norm, label)
+        features.append(feature.cpu().detach().numpy())
+    output = element_wise_max(features)
+    os.makedirs('/home/dh/zdd/Lzr/stage3_data/train_' + time + '/' + str(batchid))
+    np.save('/home/dh/zdd/Lzr/stage3_data/train_' + time + '/' + str(batchid) + '/' + str(
+            labels.cpu().data.numpy()) + '.npy', output)
 
 
-for batchid, (points, parts, labels) in enumerate(testloader):
-#    batchsize, num_point, _ = points.size()
-    for i in range(4):
-        part_point = []
-        points = points[i, :, :]
-        parts = parts[i, :]
-        labels = labels[i]
-        seg_parts = set(parts)
-        for diff_part in seg_parts:
-            for j in range(np.size(parts, 1)):
-                if j == diff_part:
-                    part_point.append(points[j, :, :])
-                part_point = np.array(part_point)
-                part_point = torch.Tensor(part_point)
-                part_point = part_point.transpose(2, 1)
-                part_point, labels = Variable(part_point).cuda(), Variable(labels).cuda()
-                model1 = model1.eval()
-                feature = model1(part_point)
-                features.append(feature.cpu().detach.numpy())
-        output = element_wise_max(features)
-        os.makedirs('/home/dh/zdd/Lzr/stage2_data_test'+time+'/'+str(batchid))
-        np.save('/home/dh/zdd/Lzr/stage2_data_test/'+time+'/'+str(batchid)+'/'+str(labels.cpu().data.numpy())+'.npy', output)
+
+for batchid, (points, norms, labels) in enumerate(testloader):
+    #    batchsize, num_point, _ = points.size()
+    label = labels[0]
+    for (part, norm) in zip(points, norms):
+        part, norm = np.array(part), np.array(norm)
+        part, norm = torch.Tensor(part), torch.Tensor(norm)
+        part.transpose(2, 1)
+        norm.transpose(2, 1)
+        part, norm, label = Variable(part).cuda(), Variable(norm).cuda(), Variable(
+            label.long()).cuda()
+        model1 = model1.eval()
+        feature = model1(part, norm, label)
+        features.append(feature.cpu().detach().numpy())
+    output = element_wise_max(features)
+    os.makedirs('/home/dh/zdd/Lzr/stage3_data/test_'+time+'/'+str(batchid))
+    np.save('/home/dh/zdd/Lzr/stage3_data/test_'+time+'/'+str(batchid)+'/'+str(labels.cpu().data.numpy())+'.npy', output)
 
 # training FC_pooling
-
+if args.multi_gpu is not None:
+    device_ids = [int(x) for x in args.multi_gpu.split(',')]
+    torch.backends.cudnn.benchmark = True
+    model2.cuda(device_ids[0])
+    model2 = torch.nn.DataParallel(model2, device_ids=device_ids)
+else:
+    model2.cuda()
 logger = logging.getLogger("FC_layer training")
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler = logging.FileHandler('./experiment/logs/train_%s_' % args.model_name + str(datetime.datetime.now().strftime('%Y-%m-%d %H-%M'))+'.txt')
+file_handler = logging.FileHandler('./stage3_experiment/logs/train_%s_' % args.model_name + str(datetime.datetime.now().strftime('%Y-%m-%d %H-%M'))+'.txt')
 file_handler.setLevel(logging.INFO)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
@@ -142,12 +134,12 @@ logger.info('---------------------------------------------------TRANING---------
 logger.info('PARAMETER ...')
 logger.info(args)
 
-feature_train_path = '/home/dh/zdd/Lzr/stage2_data/'+time
-#feature_test_path = ''
+feature_train_path = '/home/dh/zdd/Lzr/stage3_data/train_'+time
+feature_test_path = '/home/dh/zdd/Lzr/stage3_data/test_'+time
 train_data = FC_input_loader(feature_train_path)
 traindataloader = torch.utils.data.DataLoader(train_data, batch_size=16, shuffle=True)
-#test_data = FC_input_loader(feature_test_path)
-#testdataloader = torch.utils.data.DataLoader(test_data, batch_size=16, shuffle=False)
+test_data = FC_input_loader(feature_test_path)
+testdataloader = torch.utils.data.DataLoader(test_data, batch_size=16, shuffle=False)
 
 if args.optimizer == 'SGD':
     optimizer = torch.optim.SGD(model2.parameters(), lr=0.01, momentum=0.9)
@@ -173,7 +165,7 @@ for epoch in range(start_epoch, args.epoch):
     logger.info('Epoch %d (%d/%s):', global_epoch + 1, epoch + 1, args.epoch)
 
     scheduler.step()
-    for batch_id, data in tqdm(enumerate(trainloader, 0), total=len(trainloader), smoothing=0.9):
+    for batch_id, data in tqdm(enumerate(traindataloader, 0), total=len(traindataloader), smoothing=0.9):
         feat, cls = data
         feat = feat.transpose(2, 1)
         feat, cls = feat.cuda(), cls.cuda()
@@ -185,7 +177,7 @@ for epoch in range(start_epoch, args.epoch):
         optimizer.step()
         global_step += 1
 
-    test_acc = test(model2.eval(), testloader)   #if args.train_metric else None
+    test_acc = test(model2.eval(), testdataloader) #if args.train_metric else None
     #acc = test(model2, testdataloader)
 
     print('\r Loss: %f' % loss.data)

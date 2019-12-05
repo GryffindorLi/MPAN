@@ -260,32 +260,44 @@ def element_wise_max(in_list):   #变长参数函数
     in_feat = np.array(in_list)
     return np.max(in_feat, axis=1)
 
-#下面这个函数先别用
-def ins_seg_part(instance_txt):
-    instance = np.loadtxt(instance_txt)
-    [row, column] = np.size(instance)
-    parts = set(instance[:][-1])
-    i = 0
-    for part in parts:
-        name = 'p' + str(i)
-        locals()[name] = []
-        for k in range(row):
-            if instance[k][-1] == part:
-                locals()[name].append(instance[k][:])
-        np.savetxt(os.path.join(instance_txt.split('.')[0], str(part)+'.txt'), np.array(locals()[name]), fmt="%d", delimiter=" ")
-        i += 1
-
-def get_pred_result(root):   # root must be detailed as /home/dh/zdd/Lzr/experiment_data/2019-11-21 08:41:55/
+def data_seg(root, phase):   # root must be detailed as /home/dh/zdd/Lzr/experiment_data/2019-11-21 08:41:55/
     batches = os.listdir(root)
     batches_int = sorted([int(i) for i in batches])
     batches = [str(j) for j in batches_int]
-    seg_result = np.zeros([4, 2048])
-    for batch in batches:
-        seg = np.load(os.path.join(root, batch, 's_pred.npy'))
-        for i in range(np.size(seg, 0)):
-            for j in range(np.size(seg, 1)):
-                seg_result[i, j] = np.argmax(seg[i, j, :])
-    return seg_result
+    points = [os.path.join(root, i, 'p.npy') for i in batches]
+    norms = [os.path.join(root, i, 'n.npy') for i in batches]
+    labels = [os.path.join(root, i, 'l.npy') for i in batches]
+    parts = [os.path.join(root, i, 't.npy') for i in batches]
+    results = [os.path.join(root, i, 's_pred.npy') for i in batches]
+
+    same_part_points = []
+    same_part_norms = []
+
+    for i in len(batches):
+        points_info = np.load(points[i])
+        norms_info = np.load(norms[i])
+        labels_info = np.load(labels[i])
+        results_info = np.load(results[i]).argmax(axis=2)
+        for j in range(4):
+            point = points_info[j, :, :]
+            norm = norms_info[j, :, :]
+            label = labels_info[j]
+            result = results_info[j, :]
+            seg_parts = list(set(result))
+
+            instance_no = str(4*i + j)
+
+            for part in seg_parts:
+                for k in len(result):
+                    if (result[k].numpy() == part.numpy()).all():
+                        same_part_points.append(point[k, :])
+                        same_part_norms.append(norm[k, :])
+                same_part_points, same_part_norms = np.array(same_part_points), np.array(same_part_norms)
+                #same_part = np.concatenate(same_part_points, same_part_norms, axis=1)
+                os.makedirs(os.path.join('/home/dh/zdd/Lzr/instance_seg', str(phase)))
+                np.savez(os.path.join('/home/dh/zdd/Lzr/instance_seg', str(phase), instance_no, str(part)+'_info.npz'),
+                        points=same_part_points, norm_plt=same_part_norms, label=label)
+                #np.savetxt(os.path.join('/home/dh/zdd/Lzr/instance_seg_'+str(phase), instance_no, 'class.txt'), label)
 
 
 

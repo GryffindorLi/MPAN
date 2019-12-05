@@ -163,7 +163,7 @@ def main(args):
         #             optimizer.step()
         #
         forpointnet2 = args.model_name == 'pointnet2'
-        test_metrics, test_hist_acc, cat_mean_iou, part_pred = test_partseg(model.eval(),testdataloader,
+        test_metrics, test_hist_acc, cat_mean_iou, part_pred = test_partseg(model.eval(), testdataloader,
                                                                             seg_label_to_cat, 50, forpointnet2)
         #  part_pred = np.array(part_pred).astype(np.int32)
         print('part_pred:', part_pred.shape)

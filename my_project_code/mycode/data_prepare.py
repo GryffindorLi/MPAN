@@ -110,6 +110,49 @@ class seg_loader(Dataset):
         return point_set, cls, seg, normal
 
 class parts_loader(Dataset):
+    def __init__(self, root):
+        self.seg_classes = {'Earphone': [16, 17, 18], 'Motorbike': [30, 31, 32, 33, 34, 35], 'Rocket': [41, 42, 43],
+                            'Car': [8, 9, 10, 11], 'Laptop': [28, 29], 'Cap': [6, 7], 'Skateboard': [44, 45, 46],
+                            'Mug': [36, 37], 'Guitar': [19, 20, 21], 'Bag': [4, 5], 'Lamp': [24, 25, 26, 27],
+                            'Table': [47, 48, 49], 'Airplane': [0, 1, 2, 3], 'Pistol': [38, 39, 40],
+                            'Chair': [12, 13, 14, 15], 'Knife': [22, 23]}
+        self.root = root
+        items = os.listdir(self.root)
+        items = [os.path.join(self.root, item) for item in items]
+        part_dict = {}
+        instances = []
+        for item in items:
+            parts = os.listdir(item)
+            part_dict[item] = parts
+            instances.append(parts)
+
+        self.part_dict = part_dict
+        self.instances = instances
+
+    def __len__(self):
+        return len(self.instances)
+
+    def __getitem__(self, idx):
+        instance = self.instances[idx]
+
+        # define list for traverse the list and send different parts into different net
+        points_sets = []
+        norm_sets = []
+        labels = []
+
+        for part_fn in instance:
+            part = np.load(part_fn)
+            points = part['points']
+            norms = part['norm_plt']
+            label = part['label']
+            points_sets.append(points)
+            norm_sets.append(norms)
+            labels.append(label)
+
+        return points_sets, norm_sets, labels
+
+'''
+class parts_loader(Dataset):
     def __init__(self, root):   # root must be detailed as /home/dh/zdd/Lzr/experiment_data/2019-11-21 08:41:55/
         self.seg_classes = {'Earphone': [16, 17, 18], 'Motorbike': [30, 31, 32, 33, 34, 35], 'Rocket': [41, 42, 43],
                             'Car': [8, 9, 10, 11], 'Laptop': [28, 29], 'Cap': [6, 7], 'Skateboard': [44, 45, 46],
@@ -122,11 +165,13 @@ class parts_loader(Dataset):
         batches_sort = [str(j) for j in batches_int]
         self.batches = batches_sort
 
-        self.points = [os.path.join(root, i, 'p.npy') for i in self.batches]
-        self.norms = [os.path.join(root, i, 'n.npy') for i in self.batches]
-        self.labels = [os.path.join(root, i, 'l.npy') for i in self.batches]
-        self.parts = [os.path.join(root, i, 't.npy') for i in self.batches]
-        self.results = [os.path.join(root, i, 's_pred.npy') for i in self.batches]
+        points = [os.path.join(root, i, 'p.npy') for i in self.batches]
+        norms = [os.path.join(root, i, 'n.npy') for i in self.batches]
+        labels = [os.path.join(root, i, 'l.npy') for i in self.batches]
+        parts = [os.path.join(root, i, 't.npy') for i in self.batches]
+        results = [os.path.join(root, i, 's_pred.npy') for i in self.batches]
+
+
 
     def __len__(self):
         return len(self.batches)
@@ -134,10 +179,12 @@ class parts_loader(Dataset):
     def __getitem__(self, item):
         batch = self.batches[item]
         points = np.load(self.points[item])
+        norms = np.load(self.norms[item])
         pred_parts = np.load(self.results[item]).argmax(2)
         labels = np.load(self.labels[item])
 
-        return points, pred_parts, labels
+        return points, norms, pred_parts, labels
+'''
 
 class FC_input_loader(Dataset):
     def __init__(self, root):   # root is the place that saves the feature vector
