@@ -274,8 +274,8 @@ def data_seg(root, phase):   # root must be detailed as /home/dh/zdd/Lzr/experim
     results = [os.path.join(root, i, 's_pred.npy') for i in batches]
 
     # list to save points and norms from the same part of a instance
-    same_part_points = []
-    same_part_norms = []
+#    same_part_points = []
+#    same_part_norms = []
 
     # search for the same parts in one instance
     for i in range(len(batches)):
@@ -293,6 +293,9 @@ def data_seg(root, phase):   # root must be detailed as /home/dh/zdd/Lzr/experim
             instance_no = str(4*i + j)   # instance number of the instance
 
             for part in seg_parts:
+                # list to save points and norms from the same part of a instance
+                same_part_points = []
+                same_part_norms = []
                 for k in range(len(result)):
                     if result[k] == part:
                         same_part_points.append(point[k, :])
