@@ -145,11 +145,11 @@ class parts_loader(Dataset):
             points = part['points']
             norms = part['norm_plt']
             label = part['label']
-            labels = label[0]
+            labels.append(label)
             points_sets.append(points)
             norm_sets.append(norms)
 
-        return points_sets, norm_sets, labels
+        return points_sets, norm_sets, labels[0]
 
 '''
 class parts_loader(Dataset):
