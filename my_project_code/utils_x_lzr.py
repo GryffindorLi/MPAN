@@ -278,7 +278,7 @@ def data_seg(root, phase):   # root must be detailed as /home/dh/zdd/Lzr/experim
     same_part_norms = []
 
     # search for the same parts in one instance
-    for i in len(batches):
+    for i in range(len(batches)):
         points_info = np.load(points[i])
         norms_info = np.load(norms[i])
         labels_info = np.load(labels[i])
