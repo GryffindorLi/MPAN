@@ -56,8 +56,8 @@ log_dir = Path('./stage3_experiment/logs/')
 log_dir.mkdir(exist_ok=True)
 
 norm = True
-train_root = '/home/dh/zdd/Lzr/experiment_data/2019-11-21 08:41:55'
-test_root = '/home/dh/zdd/Lzr/test_data/2019-12-03 14:57:47'
+train_root = '/home/dh/zdd/Lzr/instance_seg/train'
+test_root = '/home/dh/zdd/Lzr/instance_seg/test'
 # extract feature using Feature_extract.
 train_set = parts_loader(train_root)
 trainloader = torch.utils.data.DataLoader(train_set, batch_size=args.batchsize, shuffle=True, num_workers=int(args.workers))
