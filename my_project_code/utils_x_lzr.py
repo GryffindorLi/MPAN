@@ -294,7 +294,7 @@ def data_seg(root, phase):   # root must be detailed as /home/dh/zdd/Lzr/experim
 
             for part in seg_parts:
                 for k in range(len(result)):
-                    if (result[k].numpy() == part.numpy()).all():
+                    if result[k] == part:
                         same_part_points.append(point[k, :])
                         same_part_norms.append(norm[k, :])
                 same_part_points, same_part_norms = np.array(same_part_points), np.array(same_part_norms)
