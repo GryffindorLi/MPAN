@@ -261,31 +261,36 @@ def element_wise_max(in_list):   #变长参数函数
     return np.max(in_feat, axis=1)
 
 def data_seg(root, phase):   # root must be detailed as /home/dh/zdd/Lzr/experiment_data/2019-11-21 08:41:55/
+    # sort the list into proper order
     batches = os.listdir(root)
     batches_int = sorted([int(i) for i in batches])
     batches = [str(j) for j in batches_int]
+
+    # path to different .npy file
     points = [os.path.join(root, i, 'p.npy') for i in batches]
     norms = [os.path.join(root, i, 'n.npy') for i in batches]
     labels = [os.path.join(root, i, 'l.npy') for i in batches]
     parts = [os.path.join(root, i, 't.npy') for i in batches]
     results = [os.path.join(root, i, 's_pred.npy') for i in batches]
 
+    # list to save points and norms from the same part of a instance
     same_part_points = []
     same_part_norms = []
 
+    # search for the same parts in one instance
     for i in len(batches):
         points_info = np.load(points[i])
         norms_info = np.load(norms[i])
         labels_info = np.load(labels[i])
-        results_info = np.load(results[i]).argmax(axis=2)
-        for j in range(4):
-            point = points_info[j, :, :]
-            norm = norms_info[j, :, :]
-            label = labels_info[j]
-            result = results_info[j, :]
+        results_info = np.load(results[i]).argmax(axis=2)   # select the final results of segmentation
+        for j in range(4):   # batchsize is 4
+            point = points_info[j, :, :]  # size batchsize*num_points*3(channel)
+            norm = norms_info[j, :, :]   # size batchsize*num_points*3(channel)
+            label = labels_info[j]   # size 4
+            result = results_info[j, :]   # size batchsize*num_points
             seg_parts = list(set(result))
 
-            instance_no = str(4*i + j)
+            instance_no = str(4*i + j)   # instance number of the instance
 
             for part in seg_parts:
                 for k in len(result):

@@ -80,7 +80,6 @@ features = []
 time = str(datetime.datetime.now())
 for batchid, (points, norms, labels) in enumerate(trainloader):
     #    batchsize, num_point, _ = points.size()
-    label = labels[0]
     for (part, norm) in zip(points, norms):
         part, norm = np.array(part), np.array(norm)
         part, norm = torch.Tensor(part), torch.Tensor(norm)
@@ -100,7 +99,6 @@ for batchid, (points, norms, labels) in enumerate(trainloader):
 
 for batchid, (points, norms, labels) in enumerate(testloader):
     #    batchsize, num_point, _ = points.size()
-    label = labels[0]
     for (part, norm) in zip(points, norms):
         part, norm = np.array(part), np.array(norm)
         part, norm = torch.Tensor(part), torch.Tensor(norm)
