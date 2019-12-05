@@ -299,7 +299,7 @@ def data_seg(root, phase):   # root must be detailed as /home/dh/zdd/Lzr/experim
                         same_part_norms.append(norm[k, :])
                 same_part_points, same_part_norms = np.array(same_part_points), np.array(same_part_norms)
                 #same_part = np.concatenate(same_part_points, same_part_norms, axis=1)
-                os.makedirs(os.path.join('/home/dh/zdd/Lzr/instance_seg', str(phase)))
+                os.makedirs(os.path.join('/home/dh/zdd/Lzr/instance_seg', str(phase), instance_no))
                 np.savez(os.path.join('/home/dh/zdd/Lzr/instance_seg', str(phase), instance_no, str(part)+'_info.npz'),
                         points=same_part_points, norm_plt=same_part_norms, label=label)
                 #np.savetxt(os.path.join('/home/dh/zdd/Lzr/instance_seg_'+str(phase), instance_no, 'class.txt'), label)
