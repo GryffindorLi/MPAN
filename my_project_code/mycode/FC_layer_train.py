@@ -96,7 +96,7 @@ for batchid, (points, norms, labels) in tqdm(enumerate(trainloader, 0), total=le
         model1 = model1.eval()
 #        model3 = model3.eval()
         feature = model1(part, norm, labels)
-#       _, feature = model3(part)
+#        _, feature = model3(part)
         features_train.append(feature.cpu().detach().numpy())
     output = element_wise_max(features_train)
     os.makedirs('/home/dh/zdd/Lzr/stage3_data/train_' + time)
