@@ -54,11 +54,23 @@ def test(model, loader):
         classifier = model.eval()
         pred, _, ft = classifier(points)
         ft = ft.cpu().data.numpy()
-        fts = np.concatenate((fts,ft),axis = 0)
+        fts = np.concatenate((fts, ft), axis=0)
         pred_choice = pred.data.max(1)[1]     # add here to txt file
         correct = pred_choice.eq(target.long().data).cpu().sum()
         mean_correct.append(correct.item()/float(points.size()[0]))
-    return np.mean(mean_correct),fts[1:,:]
+    return np.mean(mean_correct), fts[1:, :]
+
+def test_cls(model, loader):
+    mean_correct = []
+    for j, data in tqdm(enumerate(loader, 0), total=len(loader), smoothing=0.9):
+        feature, label = data
+        feature, label = feature.cuda(), label.cuda()
+        classifier = model.eval()
+        pred = classifier(feature)
+        pred_choice = pred.data.max(1)[1]
+        correct = pred_choice.eq(label.long().data).cpu().sum()
+        mean_correct.append(correct.item()/float(j+1))
+    return np.mean(mean_correct)
 
 def compute_cat_iou(pred,target,iou_tabel):
     iou_list = []

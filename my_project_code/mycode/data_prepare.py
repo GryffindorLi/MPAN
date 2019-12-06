@@ -123,8 +123,8 @@ class parts_loader(Dataset):
         instances = []
         for item in items:
             parts = os.listdir(item)
-            part_dict[item] = parts
-            instances.append(parts)
+            part_dict[item] = [os.path.join(item, part) for part in parts]
+            instances.append([os.path.join(item, part) for part in parts])
 
         self.part_dict = part_dict
         self.instances = instances
@@ -192,21 +192,20 @@ class FC_input_loader(Dataset):
 
         batches = os.listdir(self.root)
         self.batches = [os.path.join(self.root, i) for i in batches]
-        features = []
+        fns = []
         for batch in self.batches:
-            fns = os.listdir(batch)
-            for fn in fns:
-                features.append(os.path.join(batch, fn))
-        self.features = features
+            fn = os.listdir(batch)
+            fns.append(os.path.join(batch, fn))
+        self.fns = fns
 
     def __len__(self):
-        return len(self.batches)
+        return len(self.fns)
 
     def __getitem__(self, idx):
-        feat = self.features[idx]
-        cls = feat.split('/')[-1]
-        cls = cls.split('.')[0]
-        feature = np.load(feat)
+        feat_cls = self.fns[idx]
+        feat = np.load(feat_cls)
+        feature = feat['feature']
+        cls = feat['cls']
         return feature, cls
 
 '''

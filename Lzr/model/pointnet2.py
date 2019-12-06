@@ -108,7 +108,7 @@ class PointNet2PartSeg_msg_one_hot(nn.Module):
 
     def forward(self, xyz, norm_plt, cls_label):
         # Set Abstraction layers
-        B,C,N = xyz.size()
+        B, C, N = xyz.size()
         l0_xyz = xyz
         l0_points = norm_plt
         l1_xyz, l1_points = self.sa1(l0_xyz, norm_plt)
