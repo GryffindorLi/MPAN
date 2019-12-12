@@ -84,26 +84,28 @@ model1.load_state_dict(torch.load(args.pretrain), strict=False)
 
 features_train = []
 time = str(datetime.datetime.now())
+os.makedirs('/home/dh/zdd/Lzr/stage3_data/train')
 for batchid, (points, norms, labels) in tqdm(enumerate(trainloader, 0), total=len(trainloader), smoothing=0.9):
     #    batchsize, num_point, _ = points.size()
     for part in points:
         part = np.array(part)
         part = to_2048(part)
         part = torch.Tensor(part)
-#        part.transpose(2, 1)
+        part = part.permute(1, 2, 0)
+#        print(part.shape)
 #        norm.transpose(2, 1)
         part, labels = Variable(part).cuda(), Variable(
             labels.long()).cuda()
         model1 = model1.eval()
+#        np.savez('/home/dh/zdd/Lzr/save', part.cpu().numpy())
         _, feature = model1(part)
         feature = feature.view(1, 1024)
         features_train.append(feature.cpu().detach().numpy())
     output = element_wise_max(features_train)
-    os.makedirs('/home/dh/zdd/Lzr/stage3_data/train_' + time)
-    np.savez('/home/dh/zdd/Lzr/stage3_data/train_' + time + '/'+str(batchid)+'.npz',
+    np.savez('/home/dh/zdd/Lzr/stage3_data/train' + '/'+str(batchid)+'.npz',
              feature=output, cls=labels.cpu().detach().numpy())
 
-
+os.makedirs('/home/dh/zdd/Lzr/stage3_data/test')
 feat_test = []
 for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len(testloader), smoothing=0.9):
     #    batchsize, num_point, _ = points.size()
@@ -111,6 +113,7 @@ for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len
         part = np.array(part)
         part = to_2048(part)
         part = torch.Tensor(part)
+        part = part.permute(1, 2, 0)
 #        part.transpose(2, 1)
 #        norm.transpose(2, 1)
         part, labels = Variable(part).cuda(), Variable(
@@ -120,8 +123,7 @@ for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len
         feature = feature.view(1, 1024)
         feat_test.append(feature.cpu().detach().numpy())
     output = element_wise_max(feat_test)
-    os.makedirs('/home/dh/zdd/Lzr/stage3_data/test_'+time)
-    np.save('/home/dh/zdd/Lzr/stage3_data/test_'+time+'/'+str(batchid)+'.npz',
+    np.save('/home/dh/zdd/Lzr/stage3_data/test'+'/'+str(batchid)+'.npz',
             feature=output, cls=labels.cpu().detach().numpy())
 
 # training FC_pooling

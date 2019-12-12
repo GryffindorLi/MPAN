@@ -29,3 +29,7 @@ testing data 2874个
 ## 12.6：
 
 特征提取模型换成pointnet，pointnet++有input size的问题。
+
+## 12.12
+
+第二阶段跑通，清理一下储存空间，feature跑完以后删除instance_seg

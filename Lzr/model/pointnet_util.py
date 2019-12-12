@@ -32,8 +32,9 @@ def square_distance(src, dst):
     Output:
         dist: per-point square distance, [B, N, M]
     """
-    B, N, _ = src.shape
-    _, M, _ = dst.shape
+    N, _ = src.shape
+    M, _ = dst.shape
+    B = 1
     dist = -2 * torch.matmul(src, dst.permute(0, 2, 1))
     dist += torch.sum(src ** 2, -1).view(B, N, 1)
     dist += torch.sum(dst ** 2, -1).view(B, 1, M)
@@ -50,7 +51,7 @@ def index_points(points, idx):
         new_points:, indexed points data, [B, S, C]
     """
     device = points.device
-    B = points.shape[0]
+    B = 1        #修改部分
     view_shape = list(idx.shape)
     view_shape[1:] = [1] * (len(view_shape) - 1)
     repeat_shape = list(idx.shape)
@@ -69,7 +70,8 @@ def farthest_point_sample(xyz, npoint):
         centroids: sampled pointcloud index, [B, npoint]
     """
     device = xyz.device
-    B, N, C = xyz.shape
+    N, C = xyz.shape  #修改部分
+    B=1   #修改部分
     centroids = torch.zeros(B, npoint, dtype=torch.long).to(device)
     distance = torch.ones(B, N).to(device) * 1e10
     farthest = torch.randint(0, N, (B,), dtype=torch.long).to(device)
@@ -95,7 +97,8 @@ def query_ball_point(radius, nsample, xyz, new_xyz):
         group_idx: grouped points index, [B, S, nsample]
     """
     device = xyz.device
-    B, N, C = xyz.shape
+    N, C = xyz.shape  #修改部分
+    B = 1   #修改部分
     _, S, _ = new_xyz.shape
     group_idx = torch.arange(N, dtype=torch.long).to(device).view(1, 1, N).repeat([B, S, 1])
     sqrdists = square_distance(new_xyz, xyz)
@@ -119,7 +122,8 @@ def sample_and_group(npoint, radius, nsample, xyz, points, returnfps=False):
         new_xyz: sampled points position data, [B, 1, C]
         new_points: sampled points data, [B, 1, N, C+D]
     """
-    B, N, C = xyz.shape
+    N, C = xyz.shape   #修改部分
+    B = 1  #修改部分
     S = npoint
     fps_idx = farthest_point_sample(xyz, npoint) # [B, npoint, C]
     new_xyz = index_points(xyz, fps_idx)
@@ -147,7 +151,8 @@ def sample_and_group_all(xyz, points):
         new_points: sampled points data, [B, 1, N, C+D]
     """
     device = xyz.device
-    B, N, C = xyz.shape
+    N, C = xyz.shape  #修改部分
+    B = 1  #修改部分
     new_xyz = torch.zeros(B, 1, C).to(device)
     grouped_xyz = xyz.view(B, 1, N, C)
     if points is not None:
@@ -233,7 +238,8 @@ class PointNetSetAbstractionMsg(nn.Module):
         if points is not None:
             points = points.permute(0, 2, 1)
 
-        B, N, C = xyz.shape
+        N, C = xyz.shape
+        B = 1
         S = self.npoint
         new_xyz = index_points(xyz, farthest_point_sample(xyz, S))
         new_points_list = []
@@ -286,8 +292,9 @@ class PointNetFeaturePropagation(nn.Module):
         xyz2 = xyz2.permute(0, 2, 1)
 
         points2 = points2.permute(0, 2, 1)
-        B, N, C = xyz1.shape
-        _, S, _ = xyz2.shape
+        N, C = xyz1.shape
+        S, _ = xyz2.shape
+        B = 1
 
         if S == 1:
             interpolated_points = points2.repeat(1, N, 1)

@@ -52,7 +52,7 @@ class Feature_extract(nn.Module):
         self.fc3 = nn.Linear(256, 40)
 
     def forward(self, xyz):
-        B, _, _ = xyz.shape
+        B, N, C = xyz.shape
         l1_xyz, l1_points = self.sa1(xyz, None)
         l2_xyz, l2_points = self.sa2(l1_xyz, l1_points)
         l3_xyz, l3_points = self.sa3(l2_xyz, l2_points)
