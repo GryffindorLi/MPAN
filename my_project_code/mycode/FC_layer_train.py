@@ -9,7 +9,7 @@ from my_model import Feature_extract, FC_pooling
 from model.pointnet import PointNetCls
 from data_prepare import parts_loader, FC_input_loader
 from torch.autograd import Variable
-from utils_x_lzr import element_wise_max, test_cls, save_checkpoint
+from utils_x_lzr import element_wise_max, test_cls, save_checkpoint, to_2048
 import datetime
 from torch.utils.data import Dataset
 import torch.nn.parallel
@@ -35,7 +35,7 @@ def parse_args():
     parser.add_argument('--workers', type=int, default=8, help='number of data loading workers')
     parser.add_argument('--epoch', type=int, default=200, help='number of epochs for training')
     parser.add_argument('--pretrain', type=str,
-                         default='/home/dh/zdd/Lzr/pointnet2_164_0.9426.pth',   # 模型的地址
+                         default='/home/dh/zdd/Lzr/shape_pointnet2-0.989931-0183.pth',   # 模型的地址
                         help='whether use pretrain model')
     parser.add_argument('--gpu', type=str, default='0', help='specify gpu device')
     parser.add_argument('--model_name', type=str, default='FC_pooling', help='Name of model')
@@ -86,17 +86,17 @@ features_train = []
 time = str(datetime.datetime.now())
 for batchid, (points, norms, labels) in tqdm(enumerate(trainloader, 0), total=len(trainloader), smoothing=0.9):
     #    batchsize, num_point, _ = points.size()
-    for (part, norm) in zip(points, norms):
-        part, norm = np.array(part), np.array(norm)
-        part, norm = torch.Tensor(part), torch.Tensor(norm)
-        part.transpose(2, 1)
-        norm.transpose(2, 1)
-        part, norm, labels = Variable(part).cuda(), Variable(norm).cuda(), Variable(
+    for part in points:
+        part = np.array(part)
+        part = to_2048(part)
+        part = torch.Tensor(part)
+#        part.transpose(2, 1)
+#        norm.transpose(2, 1)
+        part, labels = Variable(part).cuda(), Variable(
             labels.long()).cuda()
         model1 = model1.eval()
-#        model3 = model3.eval()
-        feature = model1(part, norm, labels)
-#        _, feature = model3(part)
+        _, feature = model1(part)
+        feature = feature.view(1, 1024)
         features_train.append(feature.cpu().detach().numpy())
     output = element_wise_max(features_train)
     os.makedirs('/home/dh/zdd/Lzr/stage3_data/train_' + time)
@@ -107,17 +107,17 @@ for batchid, (points, norms, labels) in tqdm(enumerate(trainloader, 0), total=le
 feat_test = []
 for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len(testloader), smoothing=0.9):
     #    batchsize, num_point, _ = points.size()
-    for (part, norm) in zip(points, norms):
-        part, norm = np.array(part), np.array(norm)
-        part, norm = torch.Tensor(part), torch.Tensor(norm)
-        part.transpose(2, 1)
-        norm.transpose(2, 1)
-        part, norm, labels = Variable(part).cuda(), Variable(norm).cuda(), Variable(
+    for part in points:
+        part = np.array(part)
+        part = to_2048(part)
+        part = torch.Tensor(part)
+#        part.transpose(2, 1)
+#        norm.transpose(2, 1)
+        part, labels = Variable(part).cuda(), Variable(
             labels.long()).cuda()
         model1 = model1.eval()
-#        model3 = model3.eval()
-        feature = model1(part, norm, labels)
-#       _, feature = model3(part)
+        _, feature = model1(part)
+        feature = feature.view(1, 1024)
         feat_test.append(feature.cpu().detach().numpy())
     output = element_wise_max(feat_test)
     os.makedirs('/home/dh/zdd/Lzr/stage3_data/test_'+time)

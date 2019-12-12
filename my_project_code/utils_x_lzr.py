@@ -319,7 +319,17 @@ def data_seg(root, phase):   # root must be detailed as /home/dh/zdd/Lzr/experim
                         points=same_part_points, norm_plt=same_part_norms, label=label)
                 #np.savetxt(os.path.join('/home/dh/zdd/Lzr/instance_seg_'+str(phase), instance_no, 'class.txt'), label)
 
-
+def to_2048(part):
+    p_out = []
+#    n_out = []
+    num_p = np.size(part, axis=0)
+    choice = np.random.choice(num_p, 2048, True)
+    for i in choice:
+        p_out.append(part[i, :])
+#        n_out.append(norm[i, :])
+    p_out = np.array([p_out])
+#    n_out = np.array(n_out)
+    return p_out
 
 '''
 def data_divide(in_root):
