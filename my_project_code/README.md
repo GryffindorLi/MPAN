@@ -33,3 +33,7 @@ testing data 2874个
 ## 12.12
 
 第二阶段跑通，清理一下储存空间，feature跑完以后删除instance_seg
+
+## 12.13
+
+feature已经全部提取出来，只剩下training process了！
