@@ -81,7 +81,7 @@ else:
 #    model3.cuda()
 model1.load_state_dict(torch.load(args.pretrain), strict=False)
 #model3.load_state_dict(torch.load(''), strict=False)
-
+'''
 features_train = []
 time = str(datetime.datetime.now())
 os.makedirs('/home/dh/zdd/Lzr/stage3_data/train')
@@ -104,7 +104,7 @@ for batchid, (points, norms, labels) in tqdm(enumerate(trainloader, 0), total=le
     output = element_wise_max(features_train)
     np.savez('/home/dh/zdd/Lzr/stage3_data/train' + '/'+str(batchid)+'.npz',
              feature=output, cls=labels.cpu().detach().numpy())
-
+'''
 os.makedirs('/home/dh/zdd/Lzr/stage3_data/test')
 feat_test = []
 for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len(testloader), smoothing=0.9):
@@ -125,7 +125,7 @@ for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len
     output = element_wise_max(feat_test)
     np.save('/home/dh/zdd/Lzr/stage3_data/test'+'/'+str(batchid)+'.npz',
             feature=output, cls=labels.cpu().detach().numpy())
-
+'''
 # training FC_pooling
 if args.multi_gpu is not None:
     device_ids = [int(x) for x in args.multi_gpu.split(',')]
@@ -178,8 +178,9 @@ global_epoch = 0
 global_step = 0
 best_tst_accuracy = 0.0
 blue = lambda x: '\033[94m' + x + '\033[0m'
-
+'''
 '''TRANING'''
+'''
 logger.info('Start training...')
 for epoch in range(start_epoch, args.epoch):
     print('Epoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))
@@ -225,3 +226,4 @@ for epoch in range(start_epoch, args.epoch):
 print('Best Accuracy: %f' % best_tst_accuracy)
 
 logger.info('End of training...')
+'''
