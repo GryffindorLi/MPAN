@@ -81,12 +81,13 @@ else:
 #    model3.cuda()
 model1.load_state_dict(torch.load(args.pretrain), strict=False)
 #model3.load_state_dict(torch.load(''), strict=False)
-'''
-features_train = []
+
+#features_train = []
 time = str(datetime.datetime.now())
-os.makedirs('/home/dh/zdd/Lzr/stage3_data/train')
+os.makedirs('/home/dh/zdd/Lzr/stage3_data_new/train')
 for batchid, (points, norms, labels) in tqdm(enumerate(trainloader, 0), total=len(trainloader), smoothing=0.9):
     #    batchsize, num_point, _ = points.size()
+    features_train = []
     for part in points:
         part = np.array(part)
         part = to_2048(part)
@@ -101,14 +102,15 @@ for batchid, (points, norms, labels) in tqdm(enumerate(trainloader, 0), total=le
         _, feature = model1(part)
         feature = feature.view(1, 1024)
         features_train.append(feature.cpu().detach().numpy())
-    output = element_wise_max(features_train)
-    np.savez('/home/dh/zdd/Lzr/stage3_data/train' + '/'+str(batchid)+'.npz',
+    output = features_train #element_wise_max(features_train)
+    np.savez('/home/dh/zdd/Lzr/stage3_data_new/train' + '/'+str(batchid)+'.npz',
              feature=output, cls=labels.cpu().detach().numpy())
-'''
-os.makedirs('/home/dh/zdd/Lzr/stage3_data/test')
-feat_test = []
+
+os.makedirs('/home/dh/zdd/Lzr/stage3_data_new/test')
+#feat_test = []
 for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len(testloader), smoothing=0.9):
     #    batchsize, num_point, _ = points.size()
+    feat_test = []
     for part in points:
         part = np.array(part)
         part = to_2048(part)
@@ -122,8 +124,8 @@ for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len
         _, feature = model1(part)
         feature = feature.view(1, 1024)
         feat_test.append(feature.cpu().detach().numpy())
-    output = element_wise_max(feat_test)
-    np.save('/home/dh/zdd/Lzr/stage3_data/test'+'/'+str(batchid)+'.npz',
+    output = feat_test #element_wise_max(feat_test)
+    np.savez('/home/dh/zdd/Lzr/stage3_data_new/test'+'/'+str(batchid)+'.npz',
             feature=output, cls=labels.cpu().detach().numpy())
 '''
 # training FC_pooling
@@ -145,12 +147,12 @@ logger.info('---------------------------------------------------TRANING---------
 logger.info('PARAMETER ...')
 logger.info(args)
 
-feature_train_path = '/home/dh/zdd/Lzr/stage3_data/train_'+time
-feature_test_path = '/home/dh/zdd/Lzr/stage3_data/test_'+time
+feature_train_path = '/home/dh/zdd/Lzr/stage3_data/train'
+feature_test_path = '/home/dh/zdd/Lzr/stage3_data/test'
 train_data = FC_input_loader(feature_train_path)
-traindataloader = torch.utils.data.DataLoader(train_data, batch_size=8, shuffle=True)
+traindataloader = torch.utils.data.DataLoader(train_data, batch_size=16, shuffle=True)
 test_data = FC_input_loader(feature_test_path)
-testdataloader = torch.utils.data.DataLoader(test_data, batch_size=8, shuffle=False)
+testdataloader = torch.utils.data.DataLoader(test_data, batch_size=16, shuffle=False)
 
 if args.pretrain is not None:
     print('Use pretrain model...')
@@ -178,9 +180,9 @@ global_epoch = 0
 global_step = 0
 best_tst_accuracy = 0.0
 blue = lambda x: '\033[94m' + x + '\033[0m'
-'''
-'''TRANING'''
-'''
+
+#TRANING
+
 logger.info('Start training...')
 for epoch in range(start_epoch, args.epoch):
     print('Epoch %d (%d/%s):' % (global_epoch + 1, epoch + 1, args.epoch))

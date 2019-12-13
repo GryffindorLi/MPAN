@@ -331,6 +331,17 @@ def to_2048(part):
 #    n_out = np.array(n_out)
     return p_out
 
+def form_feat(root):
+    fns = os.listdir(root)
+    fns = [os.path.join(root, fn) for fn in fns]
+    for fn in fns:
+        bag = np.load(fn)
+        feats = bag['feature']
+        cls = bag['cls']
+        feat = np.max(feats, axis=0)
+        np.savez(fn, feature=feat, label=cls)
+
+
 '''
 def data_divide(in_root):
     data_fns = os.listdir(in_root)
