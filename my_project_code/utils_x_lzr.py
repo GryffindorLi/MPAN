@@ -64,12 +64,13 @@ def test_cls(model, loader):
     mean_correct = []
     for j, data in tqdm(enumerate(loader, 0), total=len(loader), smoothing=0.9):
         feature, label = data
+        batch_size = len(label)
         feature, label = feature.cuda(), label.cuda()
         classifier = model.eval()
         pred = classifier(feature)
         pred_choice = pred.data.max(1)[1]
         correct = pred_choice.eq(label.long().data).cpu().sum()
-        mean_correct.append(correct.item()/float(j+1))
+        mean_correct.append(100*correct/batch_size)
     return np.mean(mean_correct)
 
 def compute_cat_iou(pred,target,iou_tabel):

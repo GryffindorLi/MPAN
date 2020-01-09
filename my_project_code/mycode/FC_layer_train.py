@@ -32,10 +32,11 @@ for cat in seg_classes.keys():
 def parse_args():
     parser = argparse.ArgumentParser('FC of the net')
     parser.add_argument('--batchsize', type=int, default=1, help='input batch size')
+    parser.add_argument('--train_metric', type=str, default=False, help='whether evaluate on training dataset')
     parser.add_argument('--workers', type=int, default=8, help='number of data loading workers')
     parser.add_argument('--epoch', type=int, default=200, help='number of epochs for training')
     parser.add_argument('--pretrain', type=str,
-                         default='/home/dh/zdd/Lzr/shape_pointnet2-0.989931-0183.pth',   # 模型的地址
+                         default='/home/dh/zdd/Lzr/stage3_experiment/checkpoints/FC_pooling-0.309215-0175.pth',   # 模型的地址
                         help='whether use pretrain model')
     parser.add_argument('--gpu', type=str, default='0', help='specify gpu device')
     parser.add_argument('--model_name', type=str, default='FC_pooling', help='Name of model')
@@ -55,7 +56,7 @@ checkpoints_dir = Path('./stage3_experiment/checkpoints/')
 checkpoints_dir.mkdir(exist_ok=True)
 log_dir = Path('./stage3_experiment/logs/')
 log_dir.mkdir(exist_ok=True)
-
+'''
 norm = True
 train_root = '/home/dh/zdd/Lzr/instance_seg/train'
 test_root = '/home/dh/zdd/Lzr/instance_seg/test'
@@ -129,6 +130,15 @@ for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len
             feature=output, cls=labels.cpu().detach().numpy())
 '''
 # training FC_pooling
+model2 = torch.nn.Sequential(
+    torch.nn.Linear(1024, 256),
+    torch.nn.ReLU(),
+    torch.nn.Dropout(p=0.5),
+    torch.nn.Linear(256, 64),
+    torch.nn.ReLU(),
+    torch.nn.Dropout(p=0.5),
+    torch.nn.Linear(64, 16)
+)
 if args.multi_gpu is not None:
     device_ids = [int(x) for x in args.multi_gpu.split(',')]
     torch.backends.cudnn.benchmark = True
@@ -150,9 +160,9 @@ logger.info(args)
 feature_train_path = '/home/dh/zdd/Lzr/stage3_data/train'
 feature_test_path = '/home/dh/zdd/Lzr/stage3_data/test'
 train_data = FC_input_loader(feature_train_path)
-traindataloader = torch.utils.data.DataLoader(train_data, batch_size=16, shuffle=True)
+traindataloader = torch.utils.data.DataLoader(train_data, batch_size=32, shuffle=True)
 test_data = FC_input_loader(feature_test_path)
-testdataloader = torch.utils.data.DataLoader(test_data, batch_size=16, shuffle=False)
+testdataloader = torch.utils.data.DataLoader(test_data, batch_size=32, shuffle=False)
 
 if args.pretrain is not None:
     print('Use pretrain model...')
@@ -191,12 +201,12 @@ for epoch in range(start_epoch, args.epoch):
     scheduler.step()
     for batch_id, data in tqdm(enumerate(traindataloader, 0), total=len(traindataloader), smoothing=0.9):
         feat, cls = data
-        feat = feat.transpose(2, 1)
-        feat, cls = feat.cuda(), cls.cuda()
+        feat, cls = Variable(feat.cuda()), Variable(cls.cuda())
+#        feat = feat.transpose(2, 1)
         optimizer.zero_grad()
         model2 = model2.train()
         pred = model2(feat)
-        loss = F.nll_loss(pred, cls.long())
+        loss = torch.nn.CrossEntropyLoss()(pred, cls.long())
         loss.backward()
         optimizer.step()
         global_step += 1
@@ -228,4 +238,3 @@ for epoch in range(start_epoch, args.epoch):
 print('Best Accuracy: %f' % best_tst_accuracy)
 
 logger.info('End of training...')
-'''

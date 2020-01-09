@@ -88,7 +88,7 @@ class FC_pooling(nn.Module):    # preprocess the data with element-wise max oper
     def forward(self, in_feat):            # in_feat is the concatenation of Feature_extract.
         # x = nn.MaxPool2d(in_feat, (2, 2), 1)  # can be change
         x = nn.ReLU(self.layer1(in_feat))
-        x = nn.Dropout(x, p=0.5)        # can be change
+        x = nn.Dropout(p=0.5)        # can be change
         x = nn.ReLU(self.layer2(x))
-        x = nn.Dropout(x, p=0.5)
-        return nn.Softmax(nn.ReLU(self.layer3(x)), dim=1)
+        x = nn.Dropout(p=0.5)
+        return F.Softmax(nn.ReLU(self.layer3(x)))

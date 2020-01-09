@@ -192,21 +192,23 @@ class FC_input_loader(Dataset):
 
         batches = os.listdir(self.root)
         self.batches = [os.path.join(self.root, i) for i in batches]
-        fns = []
-        for batch in self.batches:
-            fn = os.listdir(batch)
-            fns.append(os.path.join(batch, fn))
-        self.fns = fns
+#        fns = []
+#        for batch in self.batches:
+#            fn = os.listdir(batch)
+#            fns.append(os.path.join(batch, fn))
+#        self.fns = fns
 
     def __len__(self):
-        return len(self.fns)
+        return len(self.batches)
 
     def __getitem__(self, idx):
-        feat_cls = self.fns[idx]
+        feat_cls = self.batches[idx]
         feat = np.load(feat_cls)
         feature = feat['feature']
-        cls = feat['cls']
+        cls = feat['label'].squeeze()
         return feature, cls
+
+
 
 '''
 class feature_extract_loader(Dataset):
