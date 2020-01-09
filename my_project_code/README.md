@@ -37,3 +37,11 @@ testing data 2874个
 ## 12.13
 
 feature已经全部提取出来，只剩下training process了！
+
+## 1.9
+
+第一次训练完成，best accuracy 71%
+
+调参
+
+考虑：feature fusion的改善思路（加入global feature；pooling方式改进）
