@@ -273,6 +273,16 @@ def element_wise_max(in_list):   #变长参数函数
     in_feat = np.array(in_list)
     return np.max(in_feat, axis=1)
 
+def element_wise_min(in_list):   #变长参数函数
+    in_feat = np.array(in_list)
+    in_feat = in_feat.squeeze()
+    return np.min(in_feat, axis=0)
+
+def element_wise_mean(in_list):
+    in_feat = np.array(in_list)
+    in_feat = in_feat.squeeze()
+    return np.mean(in_feat, axis=0)
+
 def data_seg(root, phase):   # root must be detailed as /home/dh/zdd/Lzr/experiment_data/2019-11-21 08:41:55/
     # sort the list into proper order
     batches = os.listdir(root)

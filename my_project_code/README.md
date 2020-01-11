@@ -45,3 +45,9 @@ feature已经全部提取出来，只剩下training process了！
 调参
 
 考虑：feature fusion的改善思路（加入global feature；pooling方式改进）
+
+## 1.11
+
+finish mean-pooling and min-pooling
+
+服务器和PC上代码不一致

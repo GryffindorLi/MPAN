@@ -9,7 +9,7 @@ from my_model import Feature_extract, FC_pooling
 from model.pointnet import PointNetCls
 from data_prepare import parts_loader, FC_input_loader
 from torch.autograd import Variable
-from utils_x_lzr import element_wise_max, test_cls, save_checkpoint, to_2048
+from utils_x_lzr import element_wise_max, element_wise_min, element_wise_mean, test_cls, save_checkpoint, to_2048
 import datetime
 from torch.utils.data import Dataset
 import torch.nn.parallel
@@ -34,9 +34,9 @@ def parse_args():
     parser.add_argument('--batchsize', type=int, default=1, help='input batch size')
     parser.add_argument('--train_metric', type=str, default=False, help='whether evaluate on training dataset')
     parser.add_argument('--workers', type=int, default=8, help='number of data loading workers')
-    parser.add_argument('--epoch', type=int, default=200, help='number of epochs for training')
+    parser.add_argument('--epoch', type=int, default=400, help='number of epochs for training')
     parser.add_argument('--pretrain', type=str,
-                         default='/home/dh/zdd/Lzr/stage3_experiment/checkpoints/FC_pooling-0.309215-0175.pth',   # 模型的地址
+                         default=None,   # 模型的地址
                         help='whether use pretrain model')
     parser.add_argument('--gpu', type=str, default='0', help='specify gpu device')
     parser.add_argument('--model_name', type=str, default='FC_pooling', help='Name of model')
@@ -52,9 +52,9 @@ def parse_args():
 args = parse_args()
 experiment_dir = Path('./stage3_experiment/')
 experiment_dir.mkdir(exist_ok=True)
-checkpoints_dir = Path('./stage3_experiment/checkpoints/')
+checkpoints_dir = Path('./stage3_experiment/checkpoints_mean/')   #
 checkpoints_dir.mkdir(exist_ok=True)
-log_dir = Path('./stage3_experiment/logs/')
+log_dir = Path('./stage3_experiment/logs_mean/')    #
 log_dir.mkdir(exist_ok=True)
 '''
 norm = True
@@ -67,7 +67,6 @@ test_set = parts_loader(test_root)
 testloader = torch.utils.data.DataLoader(test_set, batch_size=args.batchsize, shuffle=False, num_workers=int(args.workers))
 
 model1 = Feature_extract()
-model2 = FC_pooling()
 #model3 = PointNetCls()
 
 if args.multi_gpu is not None:
@@ -85,7 +84,7 @@ model1.load_state_dict(torch.load(args.pretrain), strict=False)
 
 #features_train = []
 time = str(datetime.datetime.now())
-os.makedirs('/home/dh/zdd/Lzr/stage3_data_new/train')
+os.makedirs('/home/dh/zdd/Lzr/stage3_data_min/train')
 for batchid, (points, norms, labels) in tqdm(enumerate(trainloader, 0), total=len(trainloader), smoothing=0.9):
     #    batchsize, num_point, _ = points.size()
     features_train = []
@@ -103,11 +102,11 @@ for batchid, (points, norms, labels) in tqdm(enumerate(trainloader, 0), total=le
         _, feature = model1(part)
         feature = feature.view(1, 1024)
         features_train.append(feature.cpu().detach().numpy())
-    output = features_train #element_wise_max(features_train)
-    np.savez('/home/dh/zdd/Lzr/stage3_data_new/train' + '/'+str(batchid)+'.npz',
+    output = element_wise_min(features_train)
+    np.savez('/home/dh/zdd/Lzr/stage3_data_min/train' + '/'+str(batchid)+'.npz',
              feature=output, cls=labels.cpu().detach().numpy())
 
-os.makedirs('/home/dh/zdd/Lzr/stage3_data_new/test')
+os.makedirs('/home/dh/zdd/Lzr/stage3_data_min/test')
 #feat_test = []
 for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len(testloader), smoothing=0.9):
     #    batchsize, num_point, _ = points.size()
@@ -125,8 +124,8 @@ for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len
         _, feature = model1(part)
         feature = feature.view(1, 1024)
         feat_test.append(feature.cpu().detach().numpy())
-    output = feat_test #element_wise_max(feat_test)
-    np.savez('/home/dh/zdd/Lzr/stage3_data_new/test'+'/'+str(batchid)+'.npz',
+    output = element_wise_min(feat_test)
+    np.savez('/home/dh/zdd/Lzr/stage3_data_min/test'+'/'+str(batchid)+'.npz',
             feature=output, cls=labels.cpu().detach().numpy())
 '''
 # training FC_pooling
@@ -149,7 +148,7 @@ else:
 logger = logging.getLogger("FC_layer training")
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler = logging.FileHandler('./stage3_experiment/logs/train_%s_' % args.model_name + str(datetime.datetime.now().strftime('%Y-%m-%d %H-%M'))+'.txt')
+file_handler = logging.FileHandler('./stage3_experiment/logs_mean/train_%s_' % args.model_name + str(datetime.datetime.now().strftime('%Y-%m-%d %H-%M'))+'.txt')  #
 file_handler.setLevel(logging.INFO)
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
@@ -157,12 +156,12 @@ logger.info('---------------------------------------------------TRANING---------
 logger.info('PARAMETER ...')
 logger.info(args)
 
-feature_train_path = '/home/dh/zdd/Lzr/stage3_data/train'
-feature_test_path = '/home/dh/zdd/Lzr/stage3_data/test'
+feature_train_path = '/home/dh/zdd/Lzr/stage3_mean/train'  #
+feature_test_path = '/home/dh/zdd/Lzr/stage3_mean/test'  #
 train_data = FC_input_loader(feature_train_path)
-traindataloader = torch.utils.data.DataLoader(train_data, batch_size=32, shuffle=True)
+traindataloader = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True)
 test_data = FC_input_loader(feature_test_path)
-testdataloader = torch.utils.data.DataLoader(test_data, batch_size=32, shuffle=False)
+testdataloader = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=False)
 
 if args.pretrain is not None:
     print('Use pretrain model...')
