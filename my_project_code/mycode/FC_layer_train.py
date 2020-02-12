@@ -6,6 +6,7 @@ import sys
 import argparse
 import torch.nn.functional as F
 from my_model import Feature_extract, FC_pooling
+import data_utils.ShapeNetDataLoader
 from model.pointnet import PointNetCls
 from data_prepare import parts_loader, FC_input_loader
 from torch.autograd import Variable
@@ -56,14 +57,15 @@ checkpoints_dir = Path('./stage3_experiment/checkpoints_mean/')   #
 checkpoints_dir.mkdir(exist_ok=True)
 log_dir = Path('./stage3_experiment/logs_mean/')    #
 log_dir.mkdir(exist_ok=True)
-'''
+
 norm = True
-train_root = '/home/dh/zdd/Lzr/instance_seg/train'
-test_root = '/home/dh/zdd/Lzr/instance_seg/test'
+train_root = '/home/dh/zdd/Lzr/instance_seg/train'   # modify it to shapenet dataset
+test_root = '/home/dh/zdd/Lzr/instance_seg/test'   # modify it to shapenet dataset
+model_path = 'shape_pointnet2-0.989931-0183.pth'
 # extract feature using Feature_extract.
-train_set = parts_loader(train_root)
+train_set = parts_loader(train_root)   # use shapenetloader, in ../data_utils
 trainloader = torch.utils.data.DataLoader(train_set, batch_size=args.batchsize, shuffle=True, num_workers=int(args.workers))
-test_set = parts_loader(test_root)
+test_set = parts_loader(test_root)   # use shapenetloader, in ../data_utils
 testloader = torch.utils.data.DataLoader(test_set, batch_size=args.batchsize, shuffle=False, num_workers=int(args.workers))
 
 model1 = Feature_extract()
@@ -79,12 +81,12 @@ if args.multi_gpu is not None:
 else:
     model1.cuda()
 #    model3.cuda()
-model1.load_state_dict(torch.load(args.pretrain), strict=False)
+model1.load_state_dict(torch.load(model_path), strict=False)   #加入特征提取模型的path
 #model3.load_state_dict(torch.load(''), strict=False)
 
 #features_train = []
 time = str(datetime.datetime.now())
-os.makedirs('/home/dh/zdd/Lzr/stage3_data_min/train')
+os.makedirs('/home/dh/zdd/Lzr/stage3_full/train')
 for batchid, (points, norms, labels) in tqdm(enumerate(trainloader, 0), total=len(trainloader), smoothing=0.9):
     #    batchsize, num_point, _ = points.size()
     features_train = []
@@ -103,10 +105,10 @@ for batchid, (points, norms, labels) in tqdm(enumerate(trainloader, 0), total=le
         feature = feature.view(1, 1024)
         features_train.append(feature.cpu().detach().numpy())
     output = element_wise_min(features_train)
-    np.savez('/home/dh/zdd/Lzr/stage3_data_min/train' + '/'+str(batchid)+'.npz',
+    np.savez('/home/dh/zdd/Lzr/stage3_full/train' + '/'+str(batchid)+'.npz',
              feature=output, cls=labels.cpu().detach().numpy())
 
-os.makedirs('/home/dh/zdd/Lzr/stage3_data_min/test')
+os.makedirs('/home/dh/zdd/Lzr/stage3_full/test')
 #feat_test = []
 for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len(testloader), smoothing=0.9):
     #    batchsize, num_point, _ = points.size()
@@ -125,26 +127,10 @@ for batchid, (points, norms, labels) in tqdm(enumerate(testloader, 0), total=len
         feature = feature.view(1, 1024)
         feat_test.append(feature.cpu().detach().numpy())
     output = element_wise_min(feat_test)
-    np.savez('/home/dh/zdd/Lzr/stage3_data_min/test'+'/'+str(batchid)+'.npz',
+    np.savez('/home/dh/zdd/Lzr/stage3_full/test'+'/'+str(batchid)+'.npz',
             feature=output, cls=labels.cpu().detach().numpy())
-'''
+
 # training FC_pooling
-model2 = torch.nn.Sequential(
-    torch.nn.Linear(1024, 256),
-    torch.nn.ReLU(),
-    torch.nn.Dropout(p=0.5),
-    torch.nn.Linear(256, 64),
-    torch.nn.ReLU(),
-    torch.nn.Dropout(p=0.5),
-    torch.nn.Linear(64, 16)
-)
-if args.multi_gpu is not None:
-    device_ids = [int(x) for x in args.multi_gpu.split(',')]
-    torch.backends.cudnn.benchmark = True
-    model2.cuda(device_ids[0])
-    model2 = torch.nn.DataParallel(model2, device_ids=device_ids)
-else:
-    model2.cuda()
 logger = logging.getLogger("FC_layer training")
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -163,6 +149,17 @@ traindataloader = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle
 test_data = FC_input_loader(feature_test_path)
 testdataloader = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=False)
 
+model2 = torch.nn.Sequential(
+    torch.nn.Linear(1024, 256),
+    torch.nn.BatchNorm1d(256),
+    torch.nn.ReLU(),
+    torch.nn.Dropout(p=0.5),
+    torch.nn.Linear(256, 64),
+    torch.nn.BatchNorm1d(64),
+    torch.nn.ReLU(),
+    torch.nn.Dropout(p=0.5),
+    torch.nn.Linear(64, 16)
+)
 if args.pretrain is not None:
     print('Use pretrain model...')
     logger.info('Use pretrain model')
@@ -172,6 +169,13 @@ if args.pretrain is not None:
 else:
     print('No existing model, starting training from scratch...')
     start_epoch = 0
+if args.multi_gpu is not None:
+    device_ids = [int(x) for x in args.multi_gpu.split(',')]
+    torch.backends.cudnn.benchmark = True
+    model2.cuda(device_ids[0])
+    model2 = torch.nn.DataParallel(model2, device_ids=device_ids)
+else:
+    model2.cuda()
 
 if args.optimizer == 'SGD':
     optimizer = torch.optim.SGD(model2.parameters(), lr=0.01, momentum=0.9)
